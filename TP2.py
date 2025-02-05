@@ -29,13 +29,8 @@ def load_csv(csv_path, patients_dict = {}):
         Dictionnaire composé des informations contenues dans le fichier csv
     """
 
-    with open(csv_path, 'r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            ID = row['participant_id']
-            if ID not in patients_dict:
-                patients_dict[ID] = {key: value for key, value in row.items() if key != 'participant_id'}
-
+    for row in csv.DictReader(open(csv_path, 'r')): patients_dict[row['participant_id']] = {key: value for key, value in row.items() if key != 'participant_id'} if row['participant_id'] not in patients_dict else patients_dict[row['participant_id']]
+    
     return patients_dict
 
 ########################################################################################################## 
@@ -59,6 +54,7 @@ def load_multiple_csv(csv_path1, csv_path2):
     patients_dict : dictionnaire python (dict)
         Dictionnaire composé des informations contenues dans les deux fichier csv SANS DUPLICATIONS
     """
+
     return load_csv(csv_path2, load_csv(csv_path1))
 
 ########################################################################################################## 
@@ -145,34 +141,18 @@ def fetch_statistics(patients_dict):
     """
     metrics, midMetricsM, midMetricsF= {'M':{"age": {'mean' : 0, 'std' : 0}, "height": {'mean' : 0, 'std' : 0}, "weight" : {'mean' : 0, 'std' : 0}}, 'F': {"age": {'mean' : 0, 'std' : 0}, "height": {'mean' : 0, 'std' : 0}, "weight" : {'mean' : 0, 'std' : 0}}}, {'age':[], 'height':[], 'weight':[]}, {'age':[], 'height':[], 'weight':[]}
 
-    for data in patients_dict.values(): 
-        if data["sex"] == "M" : 
-            midMetricsM['age'].append(data['age'])
-            midMetricsM['height'].append(data['height'])
-            midMetricsM['weight'].append(data['weight']) 
-        else: 
-            midMetricsF['age'].append(data['age']) 
-            midMetricsF['height'].append(data['height']) 
-            midMetricsF['weight'].append(data['weight'])
+    for data in patients_dict.values():
+        for metric in ["age", "height", "weight"]:midMetricsM[metric].append(data[metric]) if data["sex"] == "M" else midMetricsF[metric].append(data[metric])
 
-    #mean hommes
-    metrics['M']['age']['mean'], metrics['M']['height']['mean'], metrics['M']['weight']['mean'] = moyenne(midMetricsM['age']), moyenne(midMetricsM['height']), moyenne(midMetricsM['weight'])
-    #mean femmes
-    metrics['F']['age']['mean'], metrics['F']['height']['mean'], metrics['F']['weight']['mean'] = moyenne(midMetricsF['age']), moyenne(midMetricsF['height']), moyenne(midMetricsF['weight'])
-    #std hommes
-    metrics['M']['age']['std'], metrics['M']['height']['std'], metrics['M']['weight']['std'] = std(midMetricsM['age']), std(midMetricsM['height']), std(midMetricsM['weight'])
-    #std femmes
-    metrics['F']['age']['std'], metrics['F']['height']['std'], metrics['F']['weight']['std'] = std(midMetricsF['age']), std(midMetricsF['height']), std(midMetricsF['weight'])
+    for gender in ["M", "F"]:
+        for metric in ["age", "height", "weight"]:
+            for statistic in ["mean", "std"]:metrics[gender][metric][statistic] = (moyenne if statistic == "mean" else std)((midMetricsM[metric]) if gender == "M" else midMetricsF[metric])
 
     return metrics
 
 ########################################################################################################## 
 # PARTIE 6 : Bonus (+2 points)
 ########################################################################################################## 
-
-def listOfLists(dict):
-    print([[k] + list(v.values()) for k, v in dict.items()])
-    return [[k] + list(v.values()) for k, v in dict.items()]
 
 def create_csv(metrics):
     """
@@ -189,8 +169,10 @@ def create_csv(metrics):
     paths_list : liste python (list)
         Liste contenant les chemins des deux fichiers "F_metrics.csv" et "M_metrics.csv"
     """
-
     paths_list = ["F_metrics.csv", "M_metrics.csv"]
+
+    for path in paths_list: current_metrics = metrics["F" if "F_" in path else "M"];writer = csv.writer(open(path, "w", newline=''));writer.writerow(["stats"] + list(current_metrics.keys()))
+    for stat in ['mean', 'std']: writer.writerow([stat] + [current_metrics[metric][stat] for metric in list(current_metrics.keys())])
 
     return paths_list
 
