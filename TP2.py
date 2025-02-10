@@ -3,7 +3,7 @@ TP2 : Gestion d'une base de données d'un hôpital
 
 Groupe de laboratoire : 02
 Numéro d'équipe :  02
-Noms et matricules : Nom1 (Matricule1), Nom2 (Matricule2)
+Noms et matricules : Elbahrawy (2336883), Khauly (2434522)
 """
 
 import csv
@@ -112,11 +112,13 @@ def fetch_candidates(patients_dict):
 # PARTIE 5 : Statistiques (6 points)
 ########################################################################################################## 
 
-def moyenne(liste):
-    return round(sum(float(x) for x in liste if x != 'n/a' and x is not None) / sum(1 for x in liste if x != 'n/a' and x is not None), 1)
+def moyenne(liste): 
+    liste = [float(x) for x in liste if x != 'n/a' and x is not None]
+    return round(sum(liste) / len(liste), 1)
 
 def std(liste):
-    lst = [float(item) for item in liste if item != 'n/a' and item is not None]; return round((sum((x - moyenne(lst))**2 for x in lst) / (len(lst) - 1))**0.5, 1)
+    lst = [float(item) for item in liste if item != 'n/a' and item is not None]
+    return round((sum((x - moyenne(lst))**2 for x in lst) / (len(lst) - 1))**0.5, 1)
 
 def fetch_statistics(patients_dict):
     """
