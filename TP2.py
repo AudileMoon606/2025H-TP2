@@ -114,10 +114,10 @@ def fetch_candidates(patients_dict):
 ########################################################################################################## 
 
 def moyenne(liste):
-    return round(statistics.mean([float(item) for item in liste if item != 'n/a' and item != None]), 1)
+    return round(sum(float(x) for x in liste if x != 'n/a' and x is not None) / sum(1 for x in liste if x != 'n/a' and x is not None), 1)
 
 def std(liste):
-    return round(statistics.stdev(([float(item) for item in liste if item != 'n/a' and item != None])), 1)
+    lst = [float(item) for item in liste if item != 'n/a' and item is not None]; return round((sum((x - moyenne(lst))**2 for x in lst) / (len(lst) - 1))**0.5, 1)
 
 def fetch_statistics(patients_dict):
     """
@@ -140,7 +140,7 @@ def fetch_statistics(patients_dict):
     """
     metrics, midMetricsM, midMetricsF= {'M':{"age": {'mean' : 0, 'std' : 0}, "height": {'mean' : 0, 'std' : 0}, "weight" : {'mean' : 0, 'std' : 0}}, 'F': {"age": {'mean' : 0, 'std' : 0}, "height": {'mean' : 0, 'std' : 0}, "weight" : {'mean' : 0, 'std' : 0}}}, {'age':[], 'height':[], 'weight':[]}, {'age':[], 'height':[], 'weight':[]}
 
-    for data in patients_dict.values():
+    for data in patients_dict.values(): 
         for metric in ["age", "height", "weight"]:midMetricsM[metric].append(data[metric]) if data["sex"] == "M" else midMetricsF[metric].append(data[metric])
 
     for gender in ["M", "F"]:
@@ -170,8 +170,13 @@ def create_csv(metrics):
     """
     paths_list = ["F_metrics.csv", "M_metrics.csv"]
 
-    for path in paths_list: current_metrics = metrics["F" if "F_" in path else "M"];writer = csv.writer(open(path, "w", newline=''));writer.writerow(["stats"] + list(current_metrics.keys()))
-    for stat in ['mean', 'std']: writer.writerow([stat] + [current_metrics[metric][stat] for metric in list(current_metrics.keys())])
+    for path in paths_list:
+        gender = metrics["F" if "F_" in path else "M"]
+        with open(path, "w", newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["stats"] + list(gender.keys()))
+            for stat in ['mean', 'std']:
+                writer.writerow([stat] + [gender[metric][stat] for metric in gender.keys()])
 
     return paths_list
 
@@ -250,4 +255,3 @@ if __name__ == '__main__':
 
     # Affichage du résultat
     print("Partie 6: \n\n", paths_list, "\n")
-
