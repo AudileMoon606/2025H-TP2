@@ -77,7 +77,8 @@ def update_convention(old_convention_dict):
     new_convention_dict = {}
     for participant_id, patient_data in old_convention_dict.items():
         updated_data = {}
-        for key, value in patient_data.items(): updated_data[key] = None if value == "n/a" else value.replace("-", "/") if "-" in value else value
+        for key, value in patient_data.items(): 
+            updated_data[key] = None if value == "n/a" and key == "date_of_scan"else value.replace("-", "/") if "-" in value else value
         new_convention_dict[participant_id] = updated_data
             
     return new_convention_dict
